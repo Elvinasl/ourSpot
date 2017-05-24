@@ -1,4 +1,4 @@
-package softmates.ourspot_android;
+package softmates.ourspot;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +25,7 @@ public class connectionMng
                 .add("Available", available)
                 .build();
         Request request = new Request.Builder()
-                .url("http://ourspot.serverict.nl/upload/posttest.php")
+                .url("http://51.255.166.173/backend/api/submissions")
                 .post(formBody)
                 .build();
         client.newCall(request).enqueue(new Callback()
@@ -42,7 +42,7 @@ public class connectionMng
     }
     public JSONArray getTable() throws JSONException {
         Request request = new Request.Builder()
-                .url("http://ourspot.serverict.nl/upload/selecttest.php")
+                .url("http://51.255.166.173/backend/api/submissions")
                 .build();
         Response response = null;
         try
