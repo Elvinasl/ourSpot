@@ -62,7 +62,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         {
             checkLocationPermission();
         }
-        // Obtain the SupportMapFragment FUCK ELVIS and get notified when the map is ready to be used.
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
