@@ -48,7 +48,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private Location mLastLocation;
     private Marker mCurrLocationMarker;
     private LocationRequest mLocationRequest;
-    private softmates.ourspot_android.connectionMng conn = new softmates.ourspot_android.connectionMng();
+    private softmates.ourspot.connectionMng conn = new softmates.ourspot.connectionMng();
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
 
     @Override
