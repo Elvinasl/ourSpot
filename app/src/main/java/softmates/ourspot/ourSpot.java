@@ -42,7 +42,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         //For button
         LocationListener
 {
-
+//just a test to github
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
