@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+
+        android:background="@drawable/rounded_corner"
+        android:padding="@dimen/place_autocomplete_powered_by_google_height"
+        android:text="Thank you, empty spot has been added."
+        android:textAlignment="center"
+
+        android:textColor="@color/common_google_signin_btn_text_dark_focused" />
+</LinearLayout>
