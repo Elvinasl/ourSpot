@@ -37,6 +37,7 @@ public class connectionMng
 
             @Override public void onResponse(Call call, Response response) throws IOException
             {
+                Log.d("Submission sent", response.body().string());
             }
         });
     }

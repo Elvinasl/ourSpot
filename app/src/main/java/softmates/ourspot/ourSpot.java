@@ -265,10 +265,10 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             try
             {
                 SubmissionArray.add(new Submission(
-                        Jarray.getJSONObject(i).getDouble("latitude"),
-                        Jarray.getJSONObject(i).getDouble("longitude"),
-                        Jarray.getJSONObject(i).getString("available"),
-                        Jarray.getJSONObject(i).getString("date")));
+                        Jarray.getJSONObject(i).getDouble("Latitude"),
+                        Jarray.getJSONObject(i).getDouble("Longitude"),
+                        Jarray.getJSONObject(i).getString("Available"),
+                        Jarray.getJSONObject(i).getString("Date")));
             }
             catch (JSONException e)
             {
