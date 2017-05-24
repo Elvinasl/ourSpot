@@ -11,9 +11,11 @@
         android:layout_gravity="center"
 
         android:background="@drawable/rounded_corner"
-        android:padding="@dimen/place_autocomplete_powered_by_google_height"
+        android:clickable="false"
+        android:padding="30dp"
+        android:soundEffectsEnabled="true"
+
         android:text="Thank you, empty spot has been added."
         android:textAlignment="center"
-
         android:textColor="@color/common_google_signin_btn_text_dark_focused" />
 </LinearLayout>

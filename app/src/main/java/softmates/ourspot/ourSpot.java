@@ -31,6 +31,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         //This callback will have a public function onConnected() which will be called whenever device is connected and disconnected.
         GoogleApiClient.ConnectionCallbacks,
@@ -42,8 +45,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         //For button
         LocationListener
 {
-//just a test to github
-    //michele ask to comment
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
@@ -317,7 +318,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 break;
             case R.id.btnDirections:
                 //When user press button "Directions"
-
                 findClosest();
                 break;
             case R.id.btnTaken:
@@ -382,7 +382,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     {
         View popupView = getLayoutInflater().inflate(R.layout.popup, null);
 
-        PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        final PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         //TextView tv = (TextView) popupView.findViewById(R.id.toolbar);
         //tv.setText(....);
 
@@ -394,6 +394,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         // Get the View's(the one that was clicked in the Fragment) location
         anchorView.getLocationOnScreen(location);
         popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0);
+
     }
 
 }
