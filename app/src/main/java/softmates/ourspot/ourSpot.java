@@ -101,6 +101,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.setPadding(0, 0, 0, 110);
         //Initialize Google Play Services
+
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
             if (ContextCompat.checkSelfPermission(this,
