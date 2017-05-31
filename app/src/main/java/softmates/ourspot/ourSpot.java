@@ -77,7 +77,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
         //empty button
         Button mClickButton1 = (Button)findViewById(R.id.btnEmpty);
         mClickButton1.setOnClickListener(this);
@@ -100,7 +99,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
+        mMap.setPadding(0, 0, 0, 110);
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
@@ -397,6 +396,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
+
     public double distance(double lat1, double lat2, double lon1, double lon2)
     {
 
@@ -445,9 +445,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         View popupView = getLayoutInflater().inflate(R.layout.popup, null);
 
         final PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        //TextView tv = (TextView) popupView.findViewById(R.id.toolbar);
-        //tv.setText(....);
-
         // If the PopupWindow should be focusable
         popupWindow.setFocusable(true);
         // If you need the PopupWindow to dismiss when when touched outside
