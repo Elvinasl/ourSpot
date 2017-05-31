@@ -1,5 +1,6 @@
 package softmates.ourspot;
 import android.Manifest;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
@@ -9,6 +10,7 @@ import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +19,15 @@ import android.widget.PopupWindow;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,6 +60,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private LocationRequest mLocationRequest;
     private softmates.ourspot.connectionMng conn = new softmates.ourspot.connectionMng();
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
+    int REQUEST_CHECK_SETTINGS = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -146,12 +155,51 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        // Location request builder
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        builder.setAlwaysShow(true);
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(
+                        mGoogleApiClient,
+                        builder.build()
+                );
+
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(ourSpot.this, REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way to fix the
+                        // settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
     }
+
     @Override
     public void onConnectionSuspended(int i)
     {
@@ -254,6 +302,14 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
     private void populateMap() throws JSONException
     {
+        // Clear submission array and the map with a delay of 0.2 seconds for syncing purposes
+        try {
+            mMap.clear();
+            SubmissionArray.clear();
+            Thread.sleep(200);
+        } catch(InterruptedException ex) {
+            // intrreputed
+        }
         //Populate Submission Array with submissions
         JSONArray Jarray = conn.getTable();
         if(Jarray.length() > 0)
@@ -309,6 +365,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 try
                 {
                     conn.sendLocation(latLocation, longLocation, "Y");
+                    populateMap();
                     showPopup(v);
 
                 } catch (Exception e)
@@ -325,6 +382,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 try
                 {
                     conn.sendLocation(latLocation, longLocation, "N");
+                    populateMap();
+                    Toast msg = Toast.makeText(getApplicationContext(),
+                            "Thank you, a taken spot has been added.", Toast.LENGTH_LONG);
+                    msg.setGravity(Gravity.CENTER, 0, 0);
+                    msg.show();
                 } catch (Exception e)
                 {
                     e.printStackTrace();

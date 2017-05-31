@@ -16,7 +16,6 @@ public class connectionMng
     {
     }
     final OkHttpClient client = new OkHttpClient();
-    JSONArray Jarray;
     public void sendLocation(String latitude, String longitude, String available) throws Exception
     {
         RequestBody formBody = new FormBody.Builder()
@@ -37,6 +36,7 @@ public class connectionMng
 
             @Override public void onResponse(Call call, Response response) throws IOException
             {
+                // Logging purposes to be deleted on production.
                 Log.d("Submission sent", response.body().string());
             }
         });
