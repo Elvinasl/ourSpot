@@ -9,6 +9,7 @@ import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -254,6 +255,14 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
     private void populateMap() throws JSONException
     {
+        // Clear submission array and the map with a delay of 0.2 seconds for syncing purposes
+        try {
+            mMap.clear();
+            SubmissionArray.clear();
+            Thread.sleep(200);
+        } catch(InterruptedException ex) {
+            // intrreputed
+        }
         //Populate Submission Array with submissions
         JSONArray Jarray = conn.getTable();
         if(Jarray.length() > 0)
@@ -309,6 +318,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 try
                 {
                     conn.sendLocation(latLocation, longLocation, "Y");
+                    populateMap();
                     showPopup(v);
 
                 } catch (Exception e)
@@ -325,6 +335,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 try
                 {
                     conn.sendLocation(latLocation, longLocation, "N");
+                    populateMap();
+                    Toast msg = Toast.makeText(getApplicationContext(),
+                            "Thank you, a taken spot has been added.", Toast.LENGTH_LONG);
+                    msg.setGravity(Gravity.CENTER, 0, 0);
+                    msg.show();
                 } catch (Exception e)
                 {
                     e.printStackTrace();
