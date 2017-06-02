@@ -62,11 +62,16 @@ public class GetParkingNearby extends AsyncTask<Object, String, String>
             LatLng latLng = new LatLng(lat, lng);
             markerOptions.position(latLng);
             markerOptions.title(placeName + " : " + vicinity);
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.p));
             mMap.addMarker(markerOptions);
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
             //move map camera
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
         }
     }
+    /*mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(submissionToAdd.getLatitude(), submissionToAdd.getLongitude()))
+        .title("Available")
+                        .snippet(submissionToAdd.getTimeSpan())
+        .icon(BitmapDescriptorFactory.defaultMarker(125)));*/
 }
