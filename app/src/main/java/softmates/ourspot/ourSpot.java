@@ -61,6 +61,9 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private softmates.ourspot.connectionMng conn = new softmates.ourspot.connectionMng();
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
     int REQUEST_CHECK_SETTINGS = 100;
+    private int PROXIMITY_RADIUS = 10000;
+    double latitude;
+    double longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -120,6 +123,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         try
         {
             populateMap();
+
         }
         catch (JSONException e)
         {
@@ -227,6 +231,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
+        gerNearbyParkings();
     }
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult)
@@ -304,12 +309,16 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     {
         // Clear submission array and the map with a delay of 0.2 seconds for syncing purposes
         try {
-            mMap.clear();
+            //mMap.clear();
             SubmissionArray.clear();
             Thread.sleep(200);
         } catch(InterruptedException ex) {
             // intrreputed
         }
+
+
+
+
         //Populate Submission Array with submissions
         JSONArray Jarray = conn.getTable();
         if(Jarray.length() > 0)
@@ -331,6 +340,9 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 e.printStackTrace();
             }
         }
+
+
+
         //Populate map with markers
         for (Submission submissionToAdd : SubmissionArray)
         {
@@ -350,6 +362,9 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                         .snippet(submissionToAdd.getTimeSpan()));
             }
         }
+
+
+
     }
     //When the button clicked
     @Override
@@ -376,6 +391,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             case R.id.btnDirections:
                 //When user press button "Directions"
                 findClosest();
+
+
                 break;
             case R.id.btnTaken:
                 //When user press button "Taken"
@@ -457,4 +474,31 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
     }
 
+    public void gerNearbyParkings()
+    {
+        //pupulate maps with google results of parkings nearby
+        String prk = "parking";
+        String url = getUrl(mLastLocation.getLatitude(), mLastLocation.getLongitude(), prk);
+        Object[] DataTransfer = new Object[2];
+        DataTransfer[0] = mMap;
+        DataTransfer[1] = url;
+        Log.d("onClick", url);
+
+        GetParkingNearby getParking = new GetParkingNearby();
+        getParking.execute(DataTransfer);
+        Toast.makeText(ourSpot.this,"Parkings nearby", Toast.LENGTH_LONG).show();
+
+    }
+
+    private String getUrl(double latitude, double longitude, String nearbyPlace)
+    {
+        StringBuilder googlePlacesUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googlePlacesUrl.append("location=" + latitude + "," + longitude);
+        googlePlacesUrl.append("&radius=" + PROXIMITY_RADIUS);
+        googlePlacesUrl.append("&type=" + nearbyPlace);
+        googlePlacesUrl.append("&sensor=true");
+        googlePlacesUrl.append("&key=" + "AIzaSyCbeOCD4Nowf5X671daoc2AoAbIstfWBr8");
+        Log.d("getUrl", googlePlacesUrl.toString());
+        return (googlePlacesUrl.toString());
+    }
 }
