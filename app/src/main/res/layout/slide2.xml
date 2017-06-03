@@ -14,9 +14,9 @@
             android:layout_width="@dimen/img_width_height"
             android:layout_height="@dimen/img_width_height"
             android:layout_marginBottom="15dp"
-
+            android:src="@drawable/click"
             />
-        <!--android:src="@drawable/click"-->
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
