@@ -1,4 +1,19 @@
 <resources>
     <string name="app_name">ourSpot</string>
     <string name="title_activity_our_spot">Map</string>
+    <string name="title_activity_welcome">Home Screen</string>
+    <string name="next">NEXT</string>
+    <string name="skip">SKIP</string>
+    <string name="start">READY</string>
+    <string name="slide_1_title">WELCOME TO ourSpot</string>
+    <string name="slide_1_desc">The future of parking begins with YOU</string>
+    <string name="slide_2_title">PARKING LOTS</string>
+    <string name="slide_2_desc">Click the Empty button to submit a free parking spot and Taken to submit a full parking spot</string>
+    <string name="slide_3_title">DIRECTIONS</string>
+    <string name="slide_3_desc">Click the Direction button to ge directions to the nearest parking spot</string>
+    <string name="slide_4_title">CONGRATULATIONS</string>
+    <string name="slide_4_desc">You are now ready to use ourSpot. Please Enjoy!</string>
+    <string name="play_again_desc">To see the welcome slider again, goto Settings -> apps -> welcome slider -> clear data</string>
+    <string name="play_again">Play Again</string>
+    <string name="title_activity_welcome_screen">WelcomeScreen</string>
 </resources>
