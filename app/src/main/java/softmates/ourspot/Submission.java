@@ -1,6 +1,7 @@
 package softmates.ourspot;
 
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 
 public class Submission
 {
@@ -14,7 +15,20 @@ public class Submission
         this.Latitude = Latitude;
         this.Longitude = Longitude;
         this.empty = empty.equals("Y") ? true : false;
-        this.timeSpan = timeSpan + "min ago.";
+        int time = Double.valueOf(timeSpan).intValue();
+        if(time>60){
+            time/=60;
+            if(time > 24){
+                timeSpan = "more than 24h ago";
+            }
+            else {
+                timeSpan = String.valueOf(time) + "h ago";
+            }
+            this.timeSpan = timeSpan;
+        }
+        else {
+            this.timeSpan = String.valueOf(time) + "min ago.";
+        }
     }
 
     public double getLatitude()

@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -73,6 +74,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     double longitude;
     private static String sID = null;
     private static final String INSTALLATION = "INSTALLATION";
+    private Timer timerExecutor = new Timer();
+    private TimerTask doAsynchronousTaskExecutor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -233,8 +236,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,15.5f));
         //stop location updates
         if (mGoogleApiClient != null)
         {
@@ -318,7 +320,10 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     {
         // Clear submission array and the map with a delay of 0.2 seconds for syncing purposes
         try {
-            //mMap.clear();
+            if(mLastLocation!=null){
+                gerNearbyParkings();
+            }
+            mMap.clear();
             SubmissionArray.clear();
             Thread.sleep(200);
         } catch(InterruptedException ex) {
@@ -388,14 +393,16 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 //do something when
                 try
                 {
-                    conn.sendLocation(latLocation, longLocation, "Y");
+                    conn.sendLocation(latLocation, longLocation, "Y",id(this));
                     populateMap();
-                    showPopup(v);
+                    //showPopup(v);
+                    Toast.makeText(ourSpot.this,"Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
 
                 } catch (Exception e)
                 {
                     e.printStackTrace();
                 }
+                Log.d("IDTest", id(this));
                 break;
             case R.id.btnDirections:
                 //When user press button "Directions"
@@ -407,12 +414,9 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 //When user press button "Taken"
                 try
                 {
-                    conn.sendLocation(latLocation, longLocation, "N");
+                    conn.sendLocation(latLocation, longLocation, "N",id(this));
                     populateMap();
-                    Toast msg = Toast.makeText(getApplicationContext(),
-                            "Thank you, a taken spot has been added.", Toast.LENGTH_LONG);
-                    msg.setGravity(Gravity.CENTER, 0, 0);
-                    msg.show();
+                    Toast.makeText(ourSpot.this,"Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
                 } catch (Exception e)
                 {
                     e.printStackTrace();
@@ -460,10 +464,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         if(closest !=null) {
             LatLng latLng = new LatLng(closest.getLatitude(), closest.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(15.5f));
         }
         else{
             //no parking space available popup
+            Toast.makeText(ourSpot.this,"There is no parking space available.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -495,7 +500,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
         GetParkingNearby getParking = new GetParkingNearby();
         getParking.execute(DataTransfer);
-        Toast.makeText(ourSpot.this,"Parkings nearby", Toast.LENGTH_LONG).show();
+        //Toast.makeText(ourSpot.this,"Parkings nearby", Toast.LENGTH_LONG).show();
 
     }
 
@@ -509,6 +514,59 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         googlePlacesUrl.append("&key=" + "AIzaSyCbeOCD4Nowf5X671daoc2AoAbIstfWBr8");
         Log.d("getUrl", googlePlacesUrl.toString());
         return (googlePlacesUrl.toString());
+    }
+    public void startBackgroundPerformExecutor() {
+        final Handler handler = new Handler();
+        final boolean[] overThirty = {false};
+        final boolean[] underNine = {false};
+        final boolean[] parked = {false};
+        final long[] createdMillis = {System.currentTimeMillis()};
+        doAsynchronousTaskExecutor = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        try {
+                            final executorClass performBackgroundTask1 = new executorClass(getApplicationContext());
+                            performBackgroundTask1.execute(new Runnable() {
+                                @Override public void run() {
+                                    Log.d("ThreadRunning","Y");
+                                    Log.d("Speed",String.valueOf(mLastLocation.getSpeed()));
+                                    if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
+                                        overThirty[0] = true;
+                                        Log.d("overthirty","Y");
+                                    }
+                                    if(mLastLocation.getSpeed()<4 && overThirty[0]){
+                                        parked[0] = true;
+                                        Log.d("Parked","Y");
+                                    }
+                                    if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
+                                        underNine[0] = true;
+                                        Log.d("underNine","Y");
+                                        createdMillis[0] = System.currentTimeMillis();
+                                    }
+                                    if(underNine[0] && parked[0] && overThirty[0] && mLastLocation.getSpeed()>17){
+                                        underNine[0] = false;
+                                        parked[0] = false;
+                                        Log.d("TooFast","Y");
+                                    }
+                                    if(underNine[0] && parked[0]){
+                                        if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
+                                            overThirty[0] = false;
+                                            underNine[0] = false;
+                                            Log.d("Detected","Y");
+                                        }
+                                    }
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        };
+        timerExecutor.schedule(doAsynchronousTaskExecutor, 1000, 1000);
     }
     public synchronized static String id(Context context) {
         if (sID == null) {

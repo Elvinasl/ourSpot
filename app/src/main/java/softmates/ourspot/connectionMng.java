@@ -16,12 +16,13 @@ public class connectionMng
     {
     }
     final OkHttpClient client = new OkHttpClient();
-    public void sendLocation(String latitude, String longitude, String available) throws Exception
+    public void sendLocation(String latitude, String longitude, String available, String ID) throws Exception
     {
         RequestBody formBody = new FormBody.Builder()
                 .add("Latitude", latitude)
                 .add("Longitude", longitude)
                 .add("Available", available)
+                .add("DeviceID", ID)
                 .build();
         Request request = new Request.Builder()
                 .url("http://51.255.166.173/backend/api/submissions")

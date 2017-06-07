@@ -65,8 +65,8 @@ public class GetParkingNearby extends AsyncTask<Object, String, String>
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.p));
             mMap.addMarker(markerOptions);
             //move map camera
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+            //mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            //mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
         }
     }
     /*mMap.addMarker(new MarkerOptions()
