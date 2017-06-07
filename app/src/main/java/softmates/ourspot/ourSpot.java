@@ -1,5 +1,6 @@
 package softmates.ourspot;
 import android.Manifest;
+import android.content.Context;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
@@ -38,9 +39,15 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONArray;
 import org.json.JSONException;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         //This callback will have a public function onConnected() which will be called whenever device is connected and disconnected.
@@ -64,6 +71,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private int PROXIMITY_RADIUS = 10000;
     double latitude;
     double longitude;
+    private static String sID = null;
+    private static final String INSTALLATION = "INSTALLATION";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -500,5 +509,33 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         googlePlacesUrl.append("&key=" + "AIzaSyCbeOCD4Nowf5X671daoc2AoAbIstfWBr8");
         Log.d("getUrl", googlePlacesUrl.toString());
         return (googlePlacesUrl.toString());
+    }
+    public synchronized static String id(Context context) {
+        if (sID == null) {
+            File installation = new File(context.getFilesDir(), INSTALLATION);
+            try {
+                if (!installation.exists())
+                    writeInstallationFile(installation);
+                sID = readInstallationFile(installation);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return sID;
+    }
+
+    private static String readInstallationFile(File installation) throws IOException {
+        RandomAccessFile f = new RandomAccessFile(installation, "r");
+        byte[] bytes = new byte[(int) f.length()];
+        f.readFully(bytes);
+        f.close();
+        return new String(bytes);
+    }
+
+    private static void writeInstallationFile(File installation) throws IOException {
+        FileOutputStream out = new FileOutputStream(installation);
+        String id = UUID.randomUUID().toString();
+        out.write(id.getBytes());
+        out.close();
     }
 }
