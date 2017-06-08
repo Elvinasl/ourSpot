@@ -129,11 +129,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
-        try
+        /*try
         {
             populateMap();
 
-        }
+        }*/
         catch (JSONException e)
         {
             e.printStackTrace();
@@ -235,6 +235,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
+        try {
+            populateMap();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         //show nearby parkings
         gerNearbyParkings();
     }
@@ -328,7 +333,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
 
         //Populate Submission Array with submissions
-        JSONArray Jarray = conn.getTable();
+        JSONArray Jarray = conn.getTable(mLastLocation);
         if(Jarray.length() > 0)
         {
 
