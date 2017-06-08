@@ -70,8 +70,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
     int REQUEST_CHECK_SETTINGS = 100;
     private int PROXIMITY_RADIUS = 10000;
-    double latitude;
-    double longitude;
     private static String sID = null;
     private static final String INSTALLATION = "INSTALLATION";
     private Timer timerExecutor = new Timer();
@@ -83,7 +81,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_our_spot);
-        //mMap.getUiSettings().setZoomControlsEnabled(true);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
             checkLocationPermission();
@@ -136,14 +133,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         {
             populateMap();
 
-        }
+        }*/
         catch (JSONException e)
         {
             e.printStackTrace();
-        }*/
-        //zoom map camera to currect user's location
-        //mMap.animateCamera(CameraUpdateFactory
-        //      .newLatLngZoom(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 15.5f));
+        }
     }
     //to intialize Google Play Services.
     protected synchronized void buildGoogleApiClient()
@@ -208,7 +202,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 }
             }
         });
-
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -219,8 +212,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     @Override
     public void onConnectionSuspended(int i)
     {
-
     }
+
     //What to do whenever user location change.
     // Function onLocationChanged  will be called as soon as user location change.
     @Override
@@ -247,6 +240,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        //show nearby parkings
         gerNearbyParkings();
     }
     @Override
@@ -343,6 +337,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         if(Jarray.length() > 0)
         {
 
+            //TODO: Why for???????????????????????????
         }
         for (int i = 0; i < Jarray.length(); i++)
         {
@@ -359,9 +354,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 e.printStackTrace();
             }
         }
-
-
-
         //Populate map with markers
         for (Submission submissionToAdd : SubmissionArray)
         {
@@ -381,14 +373,12 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                         .snippet(submissionToAdd.getTimeSpan()));
             }
         }
-
-
-
     }
     //When the button clicked
     @Override
     public void onClick(View v)
     {
+        //converts latitude and longtitude to a string
         String latLocation =  ("" + mLastLocation.getLatitude());
         String longLocation =  ("" + mLastLocation.getLongitude());
         switch (v.getId())
@@ -400,9 +390,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 {
                     conn.sendLocation(latLocation, longLocation, "Y",id(this));
                     populateMap();
-                    //showPopup(v);
+                    //show Popup
                     Toast.makeText(ourSpot.this,"Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
-
                 } catch (Exception e)
                 {
                     e.printStackTrace();
@@ -412,8 +401,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             case R.id.btnDirections:
                 //When user press button "Directions"
                 findClosest();
-
-
                 break;
             case R.id.btnTaken:
                 //When user press button "Taken"
@@ -449,6 +436,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         return Math.sqrt(distance);
     }
 
+    //finds the closest pin to user's location
     public void findClosest()
     {
         Submission closest = null;
@@ -477,38 +465,21 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-    public void showPopup(View anchorView)
-    {
-        View popupView = getLayoutInflater().inflate(R.layout.popup, null);
-
-        final PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        // If the PopupWindow should be focusable
-        popupWindow.setFocusable(true);
-        // If you need the PopupWindow to dismiss when when touched outside
-        popupWindow.setBackgroundDrawable(new ColorDrawable());
-        int location[] = new int[2];
-        // Get the View's(the one that was clicked in the Fragment) location
-        anchorView.getLocationOnScreen(location);
-        popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0);
-
-    }
-
+    //pupulate maps with google results of parkings nearby
     public void gerNearbyParkings()
     {
-        //pupulate maps with google results of parkings nearby
+        //what to search
         String prk = "parking";
         String url = getUrl(mLastLocation.getLatitude(), mLastLocation.getLongitude(), prk);
         Object[] DataTransfer = new Object[2];
         DataTransfer[0] = mMap;
         DataTransfer[1] = url;
         Log.d("onClick", url);
-
         GetParkingNearby getParking = new GetParkingNearby();
         getParking.execute(DataTransfer);
-        //Toast.makeText(ourSpot.this,"Parkings nearby", Toast.LENGTH_LONG).show();
-
     }
 
+    //gets google url
     private String getUrl(double latitude, double longitude, String nearbyPlace)
     {
         StringBuilder googlePlacesUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
@@ -520,6 +491,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         Log.d("getUrl", googlePlacesUrl.toString());
         return (googlePlacesUrl.toString());
     }
+
+
     public void startBackgroundPerformExecutor() {
         final Handler handler = new Handler();
         final boolean[] overThirty = {false};
@@ -573,6 +546,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         };
         timerExecutor.schedule(doAsynchronousTaskExecutor, 1000, 1000);
     }
+
+    //gets unique device id
     public synchronized static String id(Context context) {
         if (sID == null) {
             File installation = new File(context.getFilesDir(), INSTALLATION);
