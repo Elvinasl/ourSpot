@@ -129,15 +129,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
-        /*try
-        {
-            populateMap();
-
-        }*/
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-        }
     }
     //to intialize Google Play Services.
     protected synchronized void buildGoogleApiClient()
@@ -419,7 +410,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-
     public double distance(double lat1, double lat2, double lon1, double lon2)
     {
 
@@ -513,10 +503,14 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                                     if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
                                         overThirty[0] = true;
                                         Log.d("overthirty","Y");
+                                        //over 30km/h
+
                                     }
                                     if(mLastLocation.getSpeed()<4 && overThirty[0]){
                                         parked[0] = true;
                                         Log.d("Parked","Y");
+
+
                                     }
                                     if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
                                         underNine[0] = true;
@@ -533,6 +527,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                                             overThirty[0] = false;
                                             underNine[0] = false;
                                             Log.d("Detected","Y");
+                                            //here
+
                                         }
                                     }
                                 }
