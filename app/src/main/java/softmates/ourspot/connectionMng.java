@@ -46,7 +46,7 @@ public class connectionMng
                 // Logging purposes to be deleted on production.
                 Log.d("Submission sent", response.body().string());
             }
-        });
+        });//
     }
     public JSONArray getTable(Location location) throws JSONException {
         String latitude = String.valueOf(location.getLatitude());
