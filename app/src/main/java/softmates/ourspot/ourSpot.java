@@ -220,7 +220,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,15.5f));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,15.5f));
         //stop location updates
         if (mGoogleApiClient != null)
         {
@@ -319,9 +319,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         } catch(InterruptedException ex) {
             // intrreputed
         }
-
-
-
 
         //Populate Submission Array with submissions
         JSONArray Jarray = conn.getTable(mLastLocation);
