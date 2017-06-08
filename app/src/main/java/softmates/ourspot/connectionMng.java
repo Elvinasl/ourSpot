@@ -1,11 +1,17 @@
 package softmates.ourspot;
+
+import android.location.Location;
 import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
+
 import java.io.IOException;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -42,9 +48,21 @@ public class connectionMng
             }
         });
     }
-    public JSONArray getTable() throws JSONException {
+    public JSONArray getTable(Location location) throws JSONException {
+        String latitude = String.valueOf(location.getLatitude());
+        String longitude = String.valueOf(location.getLongitude());
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host("51.255.166.173")
+                .addPathSegment("backend")
+                .addPathSegment("api")
+                .addPathSegment("submissions")
+                .addQueryParameter("Latitude" , latitude)
+                .addQueryParameter("Longitude" , longitude)
+                .build();
+        Log.d("url",url.toString());
         Request request = new Request.Builder()
-                .url("http://51.255.166.173/backend/api/submissions")
+                .url(url)
                 .build();
         Response response = null;
         try

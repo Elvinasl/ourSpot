@@ -132,7 +132,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
-        try
+        /*try
         {
             populateMap();
 
@@ -140,7 +140,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         catch (JSONException e)
         {
             e.printStackTrace();
-        }
+        }*/
         //zoom map camera to currect user's location
         //mMap.animateCamera(CameraUpdateFactory
         //      .newLatLngZoom(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 15.5f));
@@ -242,6 +242,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
+        try {
+            populateMap();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         gerNearbyParkings();
     }
     @Override
@@ -334,7 +339,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
 
         //Populate Submission Array with submissions
-        JSONArray Jarray = conn.getTable();
+        JSONArray Jarray = conn.getTable(mLastLocation);
         if(Jarray.length() > 0)
         {
 
