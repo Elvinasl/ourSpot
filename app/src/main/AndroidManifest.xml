@@ -44,11 +44,15 @@
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity android:name=".ourSpot" />
+        <service android:name=".backgroundLocation"
+            android:enabled="true"
+            android:process=":Background_ourSpot"
+            android:label="backgroundOurspot"
+            />
     </application>
 
 </manifest><!--

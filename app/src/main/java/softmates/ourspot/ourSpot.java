@@ -1,6 +1,7 @@
 package softmates.ourspot;
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
@@ -78,7 +79,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        Context activity = this;
+        activity.startService(new Intent(activity,
+                backgroundLocation.class));
 
+        //startService(new Intent(this, backgroundLocation.class));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_our_spot);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -480,65 +485,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     }
 
 
-    public void startBackgroundPerformExecutor() {
-        final Handler handler = new Handler();
-        final boolean[] overThirty = {false};
-        final boolean[] underNine = {false};
-        final boolean[] parked = {false};
-        final long[] createdMillis = {System.currentTimeMillis()};
-        doAsynchronousTaskExecutor = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    public void run() {
-                        try {
-                            final executorClass performBackgroundTask1 = new executorClass(getApplicationContext());
-                            performBackgroundTask1.execute(new Runnable() {
-                                @Override public void run() {
-                                    Log.d("ThreadRunning","Y");
-                                    Log.d("Speed",String.valueOf(mLastLocation.getSpeed()));
-                                    if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
-                                        overThirty[0] = true;
-                                        Log.d("overthirty","Y");
-                                        //over 30km/h
-
-                                    }
-                                    if(mLastLocation.getSpeed()<4 && overThirty[0]){
-                                        parked[0] = true;
-                                        Log.d("Parked","Y");
-
-
-                                    }
-                                    if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
-                                        underNine[0] = true;
-                                        Log.d("underNine","Y");
-                                        createdMillis[0] = System.currentTimeMillis();
-                                    }
-                                    if(underNine[0] && parked[0] && overThirty[0] && mLastLocation.getSpeed()>17){
-                                        underNine[0] = false;
-                                        parked[0] = false;
-                                        Log.d("TooFast","Y");
-                                    }
-                                    if(underNine[0] && parked[0]){
-                                        if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
-                                            overThirty[0] = false;
-                                            underNine[0] = false;
-                                            Log.d("Detected","Y");
-                                            //here
-
-                                        }
-                                    }
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-        };
-        timerExecutor.schedule(doAsynchronousTaskExecutor, 1000, 1000);
-    }
 
     //gets unique device id
     public synchronized static String id(Context context) {
