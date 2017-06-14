@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -66,7 +69,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     private Marker mCurrLocationMarker;
-    private LocationRequest mLocationRequest;
     private softmates.ourspot.connectionMng conn = new softmates.ourspot.connectionMng();
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
     int REQUEST_CHECK_SETTINGS = 100;
@@ -75,14 +77,18 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private static final String INSTALLATION = "INSTALLATION";
     private Timer timerExecutor = new Timer();
     private TimerTask doAsynchronousTaskExecutor;
+    private LocationManager mLocationManager;
+    private LocationProvider locationProvider;
+    private LocationListener locationListener;
+    private LocationRequest mLocationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        //insert check for gps enabled
         Context activity = this;
         activity.startService(new Intent(activity,
                 backgroundLocation.class));
-
         //startService(new Intent(this, backgroundLocation.class));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_our_spot);
@@ -160,6 +166,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setSmallestDisplacement(0);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         // Location request builder
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -215,6 +222,45 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     @Override
     public void onLocationChanged(Location location)
     {
+        final boolean[] overThirty = {false};
+        final boolean[] underNine = {false};
+        final boolean[] parked = {false};
+        final long[] createdMillis = {System.currentTimeMillis()};
+        Log.d("ThreadRunning","Y");
+        Toast.makeText(ourSpot.this,"There is no parking space available.", Toast.LENGTH_LONG).show();
+        Log.d("LocLatitude",String.valueOf(location.getLatitude()));
+        Log.d("Speed",String.valueOf(location.getSpeed()));
+        if(location.getSpeed()>30 && !overThirty[0]) {
+            overThirty[0] = true;
+            Log.d("overthirty","Y");
+            //over 30km/h
+
+        }
+        if(location.getSpeed()<4 && overThirty[0]){
+            parked[0] = true;
+            Log.d("Parked","Y");
+
+
+        }
+        if(overThirty[0] && location.getSpeed()<9 && !underNine[0] && parked[0]){
+            underNine[0] = true;
+            Log.d("underNine","Y");
+            createdMillis[0] = System.currentTimeMillis();
+        }
+        if(underNine[0] && parked[0] && overThirty[0] && location.getSpeed()>17){
+            underNine[0] = false;
+            parked[0] = false;
+            Log.d("TooFast","Y");
+        }
+        if(underNine[0] && parked[0]){
+            if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
+                overThirty[0] = false;
+                underNine[0] = false;
+                Log.d("Detected","Y");
+                //here
+
+            }
+        }
         mLastLocation = location;
         if (mCurrLocationMarker != null)
         {
@@ -416,7 +462,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     {
 
         final int R = 6371; // Radius of the earth
-
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
@@ -514,5 +559,59 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         String id = UUID.randomUUID().toString();
         out.write(id.getBytes());
         out.close();
+    }
+
+    public void startBackgroundPerformExecutor() {
+        final Handler handler = new Handler();
+        final boolean[] overThirty = {false};
+        final boolean[] underNine = {false};
+        final boolean[] parked = {false};
+        final long[] createdMillis = {System.currentTimeMillis()};
+        doAsynchronousTaskExecutor = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        try {
+                            final executorClass performBackgroundTask1 = new executorClass(getApplicationContext());
+                            performBackgroundTask1.execute(new Runnable() {
+                                @Override public void run() {
+                                    Log.d("ThreadRunning","Y");
+                                    Log.d("Speed",String.valueOf(mLastLocation.getSpeed()));
+                                    if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
+                                        overThirty[0] = true;
+                                        Log.d("overthirty","Y");
+                                    }
+                                    if(mLastLocation.getSpeed()<4 && overThirty[0]){
+                                        parked[0] = true;
+                                        Log.d("Parked","Y");
+                                    }
+                                    if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
+                                        underNine[0] = true;
+                                        Log.d("underNine","Y");
+                                        createdMillis[0] = System.currentTimeMillis();
+                                    }
+                                    if(underNine[0] && parked[0] && overThirty[0] && mLastLocation.getSpeed()>17){
+                                        underNine[0] = false;
+                                        parked[0] = false;
+                                        Log.d("TooFast","Y");
+                                    }
+                                    if(underNine[0] && parked[0]){
+                                        if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
+                                            overThirty[0] = false;
+                                            underNine[0] = false;
+                                            Log.d("Detected","Y");
+                                        }
+                                    }
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        };
+        timerExecutor.schedule(doAsynchronousTaskExecutor, 1000, 1000);
     }
 }
