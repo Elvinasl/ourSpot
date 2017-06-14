@@ -226,28 +226,30 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         final boolean[] underNine = {false};
         final boolean[] parked = {false};
         final long[] createdMillis = {System.currentTimeMillis()};
+        float speed = location.getSpeed() * 3600 / 1000;
         Log.d("ThreadRunning","Y");
         Toast.makeText(ourSpot.this,"There is no parking space available.", Toast.LENGTH_LONG).show();
         Log.d("LocLatitude",String.valueOf(location.getLatitude()));
-        Log.d("Speed",String.valueOf(location.getSpeed()));
-        if(location.getSpeed()>30 && !overThirty[0]) {
+        Log.d("Speedd",String.valueOf(speed));
+        Log.d("SpeedGps", String.valueOf(location.getSpeed()));
+        if(location.getSpeed()>8 && !overThirty[0]) {
             overThirty[0] = true;
             Log.d("overthirty","Y");
             //over 30km/h
 
         }
-        if(location.getSpeed()<4 && overThirty[0]){
+        if(location.getSpeed()<2 && overThirty[0]){
             parked[0] = true;
             Log.d("Parked","Y");
 
 
         }
-        if(overThirty[0] && location.getSpeed()<9 && !underNine[0] && parked[0]){
+        if(overThirty[0] && location.getSpeed()<3 && !underNine[0] && parked[0]){
             underNine[0] = true;
             Log.d("underNine","Y");
             createdMillis[0] = System.currentTimeMillis();
         }
-        if(underNine[0] && parked[0] && overThirty[0] && location.getSpeed()>17){
+        if(underNine[0] && parked[0] && overThirty[0] && location.getSpeed()>5){
             underNine[0] = false;
             parked[0] = false;
             Log.d("TooFast","Y");
@@ -561,7 +563,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         out.close();
     }
 
-    public void startBackgroundPerformExecutor() {
+    /*public void startBackgroundPerformExecutor() {
         final Handler handler = new Handler();
         final boolean[] overThirty = {false};
         final boolean[] underNine = {false};
@@ -577,14 +579,13 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                             performBackgroundTask1.execute(new Runnable() {
                                 @Override public void run() {
                                     Log.d("ThreadRunning","Y");
-                                    Log.d("Speed",String.valueOf(mLastLocation.getSpeed()));
+                                    Log.d("Speedaaaaaa",String.valueOf(mLastLocation.getSpeed()));
                                     if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
                                         overThirty[0] = true;
                                         Log.d("overthirty","Y");
                                     }
                                     if(mLastLocation.getSpeed()<4 && overThirty[0]){
-                                        parked[0] = true;
-                                        Log.d("Parked","Y");
+                                        parked[0] = true;Log.d("Parked","Y");
                                     }
                                     if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
                                         underNine[0] = true;
@@ -613,5 +614,5 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             }
         };
         timerExecutor.schedule(doAsynchronousTaskExecutor, 1000, 1000);
-    }
+    }*/
 }

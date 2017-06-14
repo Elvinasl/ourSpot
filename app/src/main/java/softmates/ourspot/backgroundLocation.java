@@ -47,29 +47,31 @@ public class backgroundLocation extends Service {
         @Override
         public void onLocationChanged(Location location)
         {
+            float speed = location.getSpeed() * 3600 / 1000;
             Log.e(TAG, "onLocationChanged: " + location);
             mLastLocation.set(location);
             Log.d("ThreadRunning","Y");
             Log.d("LocLatitude",String.valueOf(mLastLocation.getLatitude()));
+            Log.d("SpeedGps",String.valueOf(speed));
             Log.d("Speed",String.valueOf(mLastLocation.getSpeed()));
-            if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
+            if(speed>30 && !overThirty[0]) {
                 overThirty[0] = true;
                 Log.d("overthirty","Y");
                 //over 30km/h
 
             }
-            if(mLastLocation.getSpeed()<4 && overThirty[0]){
+            if(speed<4 && overThirty[0]){
                 parked[0] = true;
                 Log.d("Parked","Y");
 
 
             }
-            if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
+            if(overThirty[0] && speed<9 && speed>0 && !underNine[0] && parked[0]){
                 underNine[0] = true;
                 Log.d("underNine","Y");
                 createdMillis[0] = System.currentTimeMillis();
             }
-            if(underNine[0] && parked[0] && overThirty[0] && mLastLocation.getSpeed()>17){
+            if(underNine[0] && parked[0] && overThirty[0] && speed>17){
                 underNine[0] = false;
                 parked[0] = false;
                 Log.d("TooFast","Y");
