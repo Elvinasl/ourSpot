@@ -1,28 +1,24 @@
 package softmates.ourspot;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.ColorDrawable;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.PopupWindow;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -42,6 +38,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -81,6 +78,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private LocationProvider locationProvider;
     private LocationListener locationListener;
     private LocationRequest mLocationRequest;
+    private static double[][] blackList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -109,10 +107,25 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         //taken button
         Button mClickButton3 = (Button)findViewById(R.id.btnTaken);
         mClickButton3.setOnClickListener(this);
-
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
+        JSONArray Jarray = null;
+        try {
+            Jarray = conn.getBlacklist(id(this));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        blackList= new double [Jarray.length()][2];
+        if(Jarray.length()!=0) {
+            for (int i = 0; i < Jarray.length(); i++) {
+                try {
+                    blackList[i][0] = Jarray.getJSONObject(i).getDouble("Latitude");
+                    blackList[i][1] = Jarray.getJSONObject(i).getDouble("Longitude");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
     }
 
@@ -222,47 +235,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     @Override
     public void onLocationChanged(Location location)
     {
-        final boolean[] overThirty = {false};
-        final boolean[] underNine = {false};
-        final boolean[] parked = {false};
-        final long[] createdMillis = {System.currentTimeMillis()};
-        float speed = location.getSpeed() * 3600 / 1000;
-        Log.d("ThreadRunning","Y");
-        Toast.makeText(ourSpot.this,"There is no parking space available.", Toast.LENGTH_LONG).show();
-        Log.d("LocLatitude",String.valueOf(location.getLatitude()));
-        Log.d("Speedd",String.valueOf(speed));
-        Log.d("SpeedGps", String.valueOf(location.getSpeed()));
-        if(location.getSpeed()>8 && !overThirty[0]) {
-            overThirty[0] = true;
-            Log.d("overthirty","Y");
-            //over 30km/h
-
-        }
-        if(location.getSpeed()<2 && overThirty[0]){
-            parked[0] = true;
-            Log.d("Parked","Y");
-
-
-        }
-        if(overThirty[0] && location.getSpeed()<3 && !underNine[0] && parked[0]){
-            underNine[0] = true;
-            Log.d("underNine","Y");
-            createdMillis[0] = System.currentTimeMillis();
-        }
-        if(underNine[0] && parked[0] && overThirty[0] && location.getSpeed()>5){
-            underNine[0] = false;
-            parked[0] = false;
-            Log.d("TooFast","Y");
-        }
-        if(underNine[0] && parked[0]){
-            if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
-                overThirty[0] = false;
-                underNine[0] = false;
-                Log.d("Detected","Y");
-                //here
-
-            }
-        }
         mLastLocation = location;
         if (mCurrLocationMarker != null)
         {
@@ -375,11 +347,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
         //Populate Submission Array with submissions
         JSONArray Jarray = conn.getTable(mLastLocation);
-        if(Jarray.length() > 0)
+        /*if(Jarray.length() > 0)
         {
 
             //TODO: Why for???????????????????????????
-        }
+        }*/
         for (int i = 0; i < Jarray.length(); i++)
         {
             try
@@ -460,7 +432,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-    public double distance(double lat1, double lat2, double lon1, double lon2)
+    public static double distance(double lat1, double lat2, double lon1, double lon2)
     {
 
         final int R = 6371; // Radius of the earth
@@ -562,57 +534,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         out.write(id.getBytes());
         out.close();
     }
+    public static double[][] getBlackList(){
+        return blackList;
+    }
 
-    /*public void startBackgroundPerformExecutor() {
-        final Handler handler = new Handler();
-        final boolean[] overThirty = {false};
-        final boolean[] underNine = {false};
-        final boolean[] parked = {false};
-        final long[] createdMillis = {System.currentTimeMillis()};
-        doAsynchronousTaskExecutor = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    public void run() {
-                        try {
-                            final executorClass performBackgroundTask1 = new executorClass(getApplicationContext());
-                            performBackgroundTask1.execute(new Runnable() {
-                                @Override public void run() {
-                                    Log.d("ThreadRunning","Y");
-                                    Log.d("Speedaaaaaa",String.valueOf(mLastLocation.getSpeed()));
-                                    if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
-                                        overThirty[0] = true;
-                                        Log.d("overthirty","Y");
-                                    }
-                                    if(mLastLocation.getSpeed()<4 && overThirty[0]){
-                                        parked[0] = true;Log.d("Parked","Y");
-                                    }
-                                    if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
-                                        underNine[0] = true;
-                                        Log.d("underNine","Y");
-                                        createdMillis[0] = System.currentTimeMillis();
-                                    }
-                                    if(underNine[0] && parked[0] && overThirty[0] && mLastLocation.getSpeed()>17){
-                                        underNine[0] = false;
-                                        parked[0] = false;
-                                        Log.d("TooFast","Y");
-                                    }
-                                    if(underNine[0] && parked[0]){
-                                        if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
-                                            overThirty[0] = false;
-                                            underNine[0] = false;
-                                            Log.d("Detected","Y");
-                                        }
-                                    }
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-        };
-        timerExecutor.schedule(doAsynchronousTaskExecutor, 1000, 1000);
-    }*/
 }

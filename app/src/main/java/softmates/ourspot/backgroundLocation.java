@@ -1,22 +1,16 @@
 package softmates.ourspot;
 
-import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import android.widget.Toast;
 
 /**
  * Created by elvinaslukasevicius on 08/06/2017.
@@ -34,100 +28,115 @@ public class backgroundLocation extends Service {
     final boolean[] parked = {false};
     final long[] createdMillis = {System.currentTimeMillis()};
 
-    private class LocationListener implements android.location.LocationListener
-    {
+    private class LocationListener implements android.location.LocationListener {
         Location mLastLocation;
 
-        public LocationListener(String provider)
-        {
+
+        public LocationListener(String provider) {
             Log.e(TAG, "LocationListener " + provider);
             mLastLocation = new Location(provider);
         }
 
         @Override
-        public void onLocationChanged(Location location)
-        {
+        public void onLocationChanged(Location location) {
             float speed = location.getSpeed() * 3600 / 1000;
+            String latLocation = ("" + location.getLatitude());
+            String longLocation = ("" + location.getLongitude());
             Log.e(TAG, "onLocationChanged: " + location);
             mLastLocation.set(location);
-            Log.d("ThreadRunning","Y");
-            Log.d("LocLatitude",String.valueOf(mLastLocation.getLatitude()));
-            Log.d("SpeedGps",String.valueOf(speed));
-            Log.d("Speed",String.valueOf(mLastLocation.getSpeed()));
-            if(speed>30 && !overThirty[0]) {
+            Log.d("ThreadRunning", "Y");
+            Log.d("LocLatitude", String.valueOf(mLastLocation.getLatitude()));
+            Log.d("SpeedGps", String.valueOf(speed));
+            Log.d("Speed", String.valueOf(mLastLocation.getSpeed()));
+            /*if (speed > 30 && !overThirty[0]) {
                 overThirty[0] = true;
-                Log.d("overthirty","Y");
+                Log.d("overthirty", "Y");
                 //over 30km/h
-
             }
-            if(speed<4 && overThirty[0]){
+            if (speed < 4 && overThirty[0]) {
                 parked[0] = true;
-                Log.d("Parked","Y");
-
-
+                Log.d("Parked", "Y");
             }
-            if(overThirty[0] && speed<9 && speed>0 && !underNine[0] && parked[0]){
+            if (overThirty[0] && speed < 9 && speed > 0 && !underNine[0] && parked[0]) {
                 underNine[0] = true;
-                Log.d("underNine","Y");
+                Log.d("underNine", "Y");
                 createdMillis[0] = System.currentTimeMillis();
             }
-            if(underNine[0] && parked[0] && overThirty[0] && speed>17){
+            if (underNine[0] && parked[0] && overThirty[0] && speed > 17) {
                 underNine[0] = false;
                 parked[0] = false;
-                Log.d("TooFast","Y");
-            }
-            if(underNine[0] && parked[0]){
-                if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
+                Log.d("TooFast", "Y");
+            }*/
+            createdMillis[0] = System.currentTimeMillis();
+            underNine[0] = true;
+            parked[0] = true;
+            if (underNine[0] && parked[0]) {
+                if (((System.currentTimeMillis() - createdMillis[0]) / 1000) > 9) {
                     overThirty[0] = false;
                     underNine[0] = false;
-                    Log.d("Detected","Y");
-                    //here
+                    Log.d("Detected", "Y");
 
+                    if (notInBlackList(ourSpot.getBlackList(), location)) {
+                        dialog(latLocation,longLocation);
+                    }
                 }
+
+
             }
         }
 
         @Override
-        public void onProviderDisabled(String provider)
-        {
-            Log.e(TAG, "onProviderDisabled: " + provider);
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
         }
 
         @Override
-        public void onProviderEnabled(String provider)
-        {
-            Log.e(TAG, "onProviderEnabled: " + provider);
+        public void onProviderEnabled(String provider) {
+
         }
 
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras)
-        {
-            Log.e(TAG, "onStatusChanged: " + provider);
+        public void onProviderDisabled(String provider) {
+
         }
     }
 
-    LocationListener[] mLocationListeners = new LocationListener[] {
+    public boolean notInBlackList(double[][] blackList, Location location) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        double lat1;
+        double lon1;
+        boolean blackListed = true;
+        if (blackList.length != 0) {
+            for (int i = 0; i < blackList.length; i++) {
+                lat1 = blackList[i][0];
+                lon1 = blackList[i][1];
+                blackListed = ourSpot.distance(lat1, latitude, lon1, longitude) < 50;
+            }
+        }
+        return blackListed;
+    }
+
+
+    LocationListener[] mLocationListeners = new LocationListener[]{
             new LocationListener(LocationManager.GPS_PROVIDER),
             new LocationListener(LocationManager.NETWORK_PROVIDER)
     };
 
     @Override
-    public IBinder onBind(Intent arg0)
-    {
+    public IBinder onBind(Intent arg0) {
         return null;
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
 
     @Override
-    public void onCreate()
-    {
+    public void onCreate() {
         Log.d("createeeeed", "should work");
         Log.e(TAG, "onCreate");
         initializeLocationManager();
@@ -152,8 +161,7 @@ public class backgroundLocation extends Service {
     }
 
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
        /* Log.e(TAG, "onDestroy");
         super.onDestroy();
         if (mLocationManager != null) {
@@ -173,5 +181,46 @@ public class backgroundLocation extends Service {
             mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         }
     }
+
+    public void dialog(final String latLocation, final String longLocation) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(backgroundLocation.this);
+        builder.setMessage("Are there any parking space around?");
+        //Button One : Yes
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                try {
+                    new connectionMng().sendLocation(latLocation, longLocation, "Y", ourSpot.id(getApplicationContext()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(backgroundLocation.this, "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
+            }
+        });
+        //Button Two : No
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                try {
+                    new connectionMng().sendLocation(latLocation, longLocation, "N", ourSpot.id(getApplicationContext()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(backgroundLocation.this, "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+            }
+        });
+        //Button Three : Neutral
+        builder.setNeutralButton("Don't ask again", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //TODO Add to blacklist
+                Toast.makeText(backgroundLocation.this, "Place is added to our blacklist", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+            }
+        });
+        AlertDialog diag = builder.create();
+        diag.show();
     }
+}
 
