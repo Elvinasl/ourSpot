@@ -448,8 +448,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 break;
             case R.id.btnDirections:
                 //When user press button "Directions"
-                //findClosest();
-                dialog();
+                findClosest();
                 break;
             case R.id.btnTaken:
                 //When user press button "Taken"
