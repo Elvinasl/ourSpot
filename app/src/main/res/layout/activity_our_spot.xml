@@ -47,7 +47,7 @@
             android:background="@drawable/button_directions"
             android:onClick="clickedDirections"
             android:soundEffectsEnabled="true"
-            android:text="Directions"
+            android:text="Nearest"
             android:textColor="#ffffff"
             android:textColorLink="@color/colorPrimaryDark"
             android:textSize="20sp" />

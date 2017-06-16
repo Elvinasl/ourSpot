@@ -1,8 +1,10 @@
 package softmates.ourspot;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -446,7 +448,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 break;
             case R.id.btnDirections:
                 //When user press button "Directions"
-                findClosest();
+                //findClosest();
+                dialog();
                 break;
             case R.id.btnTaken:
                 //When user press button "Taken"
@@ -465,6 +468,45 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
+    public void dialog(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(ourSpot.this);
+
+        builder.setMessage("Are there any parking space around?");
+
+
+        //Button One : Yes
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(ourSpot.this, "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+        //Button Two : No
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Toast.makeText(ourSpot.this, "No button Clicked!", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+            }
+        });
+
+
+        //Button Three : Neutral
+        builder.setNeutralButton("Don't ask again", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(ourSpot.this, "Place is added to our blacklist", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+            }
+        });
+
+
+        AlertDialog diag = builder.create();
+        diag.show();
+    }
     public double distance(double lat1, double lat2, double lon1, double lon2)
     {
 

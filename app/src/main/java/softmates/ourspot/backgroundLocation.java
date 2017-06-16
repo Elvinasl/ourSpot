@@ -1,8 +1,10 @@
 package softmates.ourspot;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -82,7 +84,6 @@ public class backgroundLocation extends Service {
                     underNine[0] = false;
                     Log.d("Detected","Y");
                     //here
-
                 }
             }
         }
@@ -172,6 +173,22 @@ public class backgroundLocation extends Service {
         if (mLocationManager == null) {
             mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         }
+    }
+
+    public void dialog(){
+
+
+        new AlertDialog.Builder(this)
+                .setTitle("")
+                .setMessage("Are there empty spaces around you?")
+                .setNegativeButton("No", null)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //when you press yes
+                    }
+                }).create().show();
+
     }
     }
 
