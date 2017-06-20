@@ -602,7 +602,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             if(parkingToAdd.getAvailability() == 1) {
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(parkingToAdd.getLatitude(), parkingToAdd.getLongitude()))
-                        .title("Price: " + parkingToAdd.getPrice() + "€")
+                        .title("Price: " + "€ " + parkingToAdd.getPrice() )
                         .snippet("Spaces: " + parkingToAdd.getSpaces())
                         .icon(BitmapDescriptorFactory.defaultMarker(240)));
             }
