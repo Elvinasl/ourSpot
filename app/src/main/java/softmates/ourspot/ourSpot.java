@@ -2,7 +2,9 @@ package softmates.ourspot;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Application;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,11 +16,13 @@ import android.location.LocationProvider;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -41,8 +45,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.instabug.library.Instabug;
-import com.instabug.library.invocation.InstabugInvocationEvent;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,7 +77,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
     int REQUEST_CHECK_SETTINGS = 100;
     private int PROXIMITY_RADIUS = 10000;
-    private static String sID = null;
+    private static String sID;
     private static final String INSTALLATION = "INSTALLATION";
     private Timer timerExecutor = new Timer();
     private TimerTask doAsynchronousTaskExecutor;
@@ -83,21 +85,20 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private LocationProvider locationProvider;
     private LocationListener locationListener;
     private LocationRequest mLocationRequest;
+    private static double[][] blackList;
+    private static Context context;
+    private static Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        // Bug reporting and IN-APP feedback and messaging
-        new Instabug.Builder((Application) getApplicationContext(), "bdba67c174a625c6b2a8bb4f3137a99b")
-                .setInvocationEvent(InstabugInvocationEvent.FLOATING_BUTTON)
-                .build();
 
+        super.onCreate(savedInstanceState);
         //insert check for gps enabled
         Context activity = this;
-        activity.startService(new Intent(activity,
-                backgroundLocation.class));
+        context = getBaseContext();
         //startService(new Intent(this, backgroundLocation.class));
-        super.onCreate(savedInstanceState);
+        ourSpot.mContext = getApplicationContext();
         setContentView(R.layout.activity_our_spot);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
@@ -116,13 +117,50 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         //taken button
         Button mClickButton3 = (Button)findViewById(R.id.btnTaken);
         mClickButton3.setOnClickListener(this);
-
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
+        //setBlacklist();
+        activity.startService(new Intent(activity,
+                backgroundLocation.class));
 
     }
+    public static Context getAppContext() {
+        return ourSpot.mContext;
+    }
+    public static String getID(){
+        return ourSpot.sID;
+    }
+    public void setBlacklist(){
+        JSONArray Jarray = null;
+        Log.d("Iscontext", String.valueOf(this==null));
+        try {
+            Jarray = conn.getBlacklist(id(this));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
+        if(Jarray!=null) {
+            double [][] blackListTemp= new double [Jarray.length()][2];
+            if (Jarray.length() != 0) {
+                for (int i = 0; i < Jarray.length(); i++) {
+                    try {
+                        blackListTemp[i][0] = Jarray.getJSONObject(i).getDouble("Latitude");
+                        blackListTemp[i][1] = Jarray.getJSONObject(i).getDouble("Longitude");
+                        Log.d("BlackLat", String.valueOf(blackListTemp[i][0]));
+                        Log.d("BlackLong", String.valueOf(blackListTemp[i][1]));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            blackList = blackListTemp;
+        }
+
+    }
+    public static synchronized double[][] getBlacklist(){
+        Log.d("blacklistssss",ourSpot.blackList.toString());
+        return ourSpot.blackList;
+    }
     //This function is called when map is ready to be used. Here we can add all markers, listeners and other functional attributes.
     @Override
     public void onMapReady(GoogleMap googleMap)
@@ -217,6 +255,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
+
     }
 
     @Override
@@ -229,47 +268,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     @Override
     public void onLocationChanged(Location location)
     {
-        final boolean[] overThirty = {false};
-        final boolean[] underNine = {false};
-        final boolean[] parked = {false};
-        final long[] createdMillis = {System.currentTimeMillis()};
-        float speed = location.getSpeed() * 3600 / 1000;
-        Log.d("ThreadRunning","Y");
-        Toast.makeText(ourSpot.this,"There is no parking space available.", Toast.LENGTH_LONG).show();
-        Log.d("LocLatitude",String.valueOf(location.getLatitude()));
-        Log.d("Speedd",String.valueOf(speed));
-        Log.d("SpeedGps", String.valueOf(location.getSpeed()));
-        if(location.getSpeed()>8 && !overThirty[0]) {
-            overThirty[0] = true;
-            Log.d("overthirty","Y");
-            //over 30km/h
-
-        }
-        if(location.getSpeed()<2 && overThirty[0]){
-            parked[0] = true;
-            Log.d("Parked","Y");
-
-
-        }
-        if(overThirty[0] && location.getSpeed()<3 && !underNine[0] && parked[0]){
-            underNine[0] = true;
-            Log.d("underNine","Y");
-            createdMillis[0] = System.currentTimeMillis();
-        }
-        if(underNine[0] && parked[0] && overThirty[0] && location.getSpeed()>5){
-            underNine[0] = false;
-            parked[0] = false;
-            Log.d("TooFast","Y");
-        }
-        if(underNine[0] && parked[0]){
-            if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
-                overThirty[0] = false;
-                underNine[0] = false;
-                Log.d("Detected","Y");
-                //here
-
-            }
-        }
         mLastLocation = location;
         if (mCurrLocationMarker != null)
         {
@@ -382,11 +380,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
         //Populate Submission Array with submissions
         JSONArray Jarray = conn.getTable(mLastLocation);
-        if(Jarray.length() > 0)
+        /*if(Jarray.length() > 0)
         {
 
             //TODO: Why for???????????????????????????
-        }
+        }*/
         for (int i = 0; i < Jarray.length(); i++)
         {
             try
@@ -467,46 +465,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-    public void dialog(){
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(ourSpot.this);
-
-        builder.setMessage("Are there any parking space around?");
-
-
-        //Button One : Yes
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(ourSpot.this, "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
-            }
-        });
-
-
-        //Button Two : No
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Toast.makeText(ourSpot.this, "No button Clicked!", Toast.LENGTH_LONG).show();
-                dialog.cancel();
-            }
-        });
-
-
-        //Button Three : Neutral
-        builder.setNeutralButton("Don't ask again", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(ourSpot.this, "Place is added to our blacklist", Toast.LENGTH_LONG).show();
-                dialog.cancel();
-            }
-        });
-
-
-        AlertDialog diag = builder.create();
-        diag.show();
-    }
-    public double distance(double lat1, double lat2, double lon1, double lon2)
+    public static double distance(double lat1, double lat2, double lon1, double lon2)
     {
 
         final int R = 6371; // Radius of the earth
@@ -524,6 +483,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     //finds the closest pin to user's location
     public void findClosest()
     {
+
         Submission closest = null;
         double minDistance = 0;
         double currDistance = 0;
@@ -608,57 +568,80 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         out.write(id.getBytes());
         out.close();
     }
+    public static double[][] getBlackList(){
+        if(blackList!=null) {
 
-    /*public void startBackgroundPerformExecutor() {
-        final Handler handler = new Handler();
-        final boolean[] overThirty = {false};
-        final boolean[] underNine = {false};
-        final boolean[] parked = {false};
-        final long[] createdMillis = {System.currentTimeMillis()};
-        doAsynchronousTaskExecutor = new TimerTask() {
+            Log.d("blackListisNotnull",String.valueOf(blackList[0][0]));
+            return blackList;
+        }
+        else{
+            // TODO Change to 0 0 array;
+            Log.d("blackListisNotnull",String.valueOf(blackList[0][0]));
+            return null;
+        }
+    }
+    /*public  void dialog(String a, String b) throws InterruptedException {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+        builder.setMessage("Are there any parking space around?");
+        //Button One : Yes
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    public void run() {
-                        try {
-                            final executorClass performBackgroundTask1 = new executorClass(getApplicationContext());
-                            performBackgroundTask1.execute(new Runnable() {
-                                @Override public void run() {
-                                    Log.d("ThreadRunning","Y");
-                                    Log.d("Speedaaaaaa",String.valueOf(mLastLocation.getSpeed()));
-                                    if(mLastLocation.getSpeed()>30 && !overThirty[0]) {
-                                        overThirty[0] = true;
-                                        Log.d("overthirty","Y");
-                                    }
-                                    if(mLastLocation.getSpeed()<4 && overThirty[0]){
-                                        parked[0] = true;Log.d("Parked","Y");
-                                    }
-                                    if(overThirty[0] && mLastLocation.getSpeed()<9 && !underNine[0] && parked[0]){
-                                        underNine[0] = true;
-                                        Log.d("underNine","Y");
-                                        createdMillis[0] = System.currentTimeMillis();
-                                    }
-                                    if(underNine[0] && parked[0] && overThirty[0] && mLastLocation.getSpeed()>17){
-                                        underNine[0] = false;
-                                        parked[0] = false;
-                                        Log.d("TooFast","Y");
-                                    }
-                                    if(underNine[0] && parked[0]){
-                                        if(((System.currentTimeMillis() - createdMillis[0]) / 1000)>9 ){
-                                            overThirty[0] = false;
-                                            underNine[0] = false;
-                                            Log.d("Detected","Y");
-                                        }
-                                    }
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
+            public void onClick(DialogInterface dialog, int which) {
+              //  Toast.makeText(ourSpot., "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
+                //dialog.cancel();
             }
-        };
-        timerExecutor.schedule(doAsynchronousTaskExecutor, 1000, 1000);
+        });
+        //Button Two : No
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Toast.makeText(ourSpot.this, "No button Clicked!", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+            }
+        });
+        //Button Three : Neutral
+        builder.setNeutralButton("Don't ask again", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Toast.makeText(backgroundLocation.this, "Place is added to our blacklist", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        //AlertDialog.Builder dialog  = new AlertDialog.Builder(getActivity());
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.show();
     }*/
+
+
+    public void Natific(){
+
+
+/*
+        // prepare intent which is triggered if the
+// notification is selected
+
+        Intent intent = new Intent(this, ourSpot.class);
+// use System.currentTimeMillis() to have a unique ID for the pending intent
+        PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
+
+// build notification
+// the addAction re-use the same intent to keep the example short
+        Notification n  = new Notification.Builder(this)
+                .setContentTitle("OurSpot")
+                .setContentText("Is there any parking space around?")
+                .setSmallIcon(R.drawable.p)
+                .setContentIntent(pIntent)
+                .setAutoCancel(true)
+                //.addAction(null,"a",pIntent)
+                //.addAction(P."Yes", pIntent)
+                .addAction(R.drawable.p, "No", pIntent)
+                .addAction(R.drawable.p, "Don't ask again", pIntent).build();
+
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        notificationManager.notify(0, n);*/
+    }
 }
