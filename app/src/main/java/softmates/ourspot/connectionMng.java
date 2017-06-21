@@ -132,4 +132,35 @@ public class connectionMng
             }
         });
     }
+    public JSONArray  getOwnerLots(Location location)throws JSONException {
+
+        String latitude = String.valueOf(location.getLatitude());
+        String longitude = String.valueOf(location.getLongitude());
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host("51.255.166.173")
+                .addPathSegment("backend")
+                .addPathSegment("api")
+                .addPathSegment("parkinglots")
+                .addQueryParameter("Latitude" , latitude)
+                .addQueryParameter("Longitude" , longitude)
+                .build();
+        Log.d("url",url.toString());
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        Response response = null;
+        try
+        {
+            response = client.newCall(request).execute();
+            String jsonData = response.body().string();
+            Log.d("parkinglot", jsonData);
+            return new JSONArray(jsonData);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return new JSONArray("");
+        }
+    }
 }

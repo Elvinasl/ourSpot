@@ -75,6 +75,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private Marker mCurrLocationMarker;
     private softmates.ourspot.connectionMng conn = new softmates.ourspot.connectionMng();
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
+    private ArrayList<ParkingLots> OwnerArray = new ArrayList<ParkingLots>();
     int REQUEST_CHECK_SETTINGS = 100;
     private int PROXIMITY_RADIUS = 10000;
     private static String sID;
@@ -291,6 +292,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
         //show nearby parkings
         gerNearbyParkings();
+        getOwnerLots();
     }
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult)
@@ -370,6 +372,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         try {
             if(mLastLocation!=null){
                 gerNearbyParkings();
+                getOwnerLots();
             }
             mMap.clear();
             SubmissionArray.clear();
@@ -522,6 +525,48 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         Log.d("onClick", url);
         GetParkingNearby getParking = new GetParkingNearby();
         getParking.execute(DataTransfer);
+    }
+    public void getOwnerLots()
+    {
+        //Populate Owner Array with submissions
+
+        JSONArray Jarray = null;
+        try {
+            Jarray = conn.getOwnerLots(mLastLocation);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        if(Jarray.length() > 0)
+        {
+
+        }
+        for (int i = 0; i < Jarray.length(); i++)
+        {
+            try
+            {
+                OwnerArray.add(new ParkingLots(
+                        Jarray.getJSONObject(i).getDouble("Latitude"),
+                        Jarray.getJSONObject(i).getDouble("Longitude"),
+                        Jarray.getJSONObject(i).getInt("Availability"),
+                        Jarray.getJSONObject(i).getDouble("Price"),
+                        Jarray.getJSONObject(i).getInt("Spaces")));
+            }
+            catch (JSONException e)
+            {
+                e.printStackTrace();
+            }
+        }
+        //Populate map with markers
+        for (ParkingLots parkingToAdd : OwnerArray)
+        {
+            if(parkingToAdd.getAvailability() == 1) {
+                mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(parkingToAdd.getLatitude(), parkingToAdd.getLongitude()))
+                        .title("Price: " + "€ " + parkingToAdd.getPrice() )
+                        .snippet("Spaces: " + parkingToAdd.getSpaces())
+                        .icon(BitmapDescriptorFactory.defaultMarker(240)));
+            }
+            }
     }
 
     //gets google url
