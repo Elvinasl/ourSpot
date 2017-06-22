@@ -77,12 +77,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-
-        // Bug reporting and IN-APP feedback and messaging
-        new Instabug.Builder((Application) getApplicationContext(), "bdba67c174a625c6b2a8bb4f3137a99b")
-            .setInvocationEvent(InstabugInvocationEvent.FLOATING_BUTTON)
-                .build();
-
         super.onCreate(savedInstanceState);
         //insert check for gps enabled
         Context activity = this;
@@ -112,6 +106,10 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         mBundle.putSerializable("blackList", blackList);
         mIntent.putExtras(mBundle);
         activity.startService(mIntent);
+        // Bug reporting and IN-APP feedback and messaging
+        new Instabug.Builder((Application) getApplicationContext(), "bdba67c174a625c6b2a8bb4f3137a99b")
+                .setInvocationEvent(InstabugInvocationEvent.FLOATING_BUTTON)
+                .build();
 
     }
     public void setBlacklist(){
@@ -255,8 +253,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
 
             mCurrLocationMarker.remove();
         }
-
-
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         //move map camera
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,15.5f));
@@ -266,13 +262,13 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
         try {
-            populateMap();
+            populateMap(location);
+            gerNearbyParkings(location);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         //show nearby parkings
-        gerNearbyParkings();
-        getOwnerLots();
+
     }
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult)
@@ -346,14 +342,10 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-    private void populateMap() throws JSONException
+    private void populateMap(Location location) throws JSONException
     {
         // Clear submission array and the map with a delay of 0.2 seconds for syncing purposes
         try {
-            if(mLastLocation!=null){
-                gerNearbyParkings();
-                getOwnerLots();
-            }
             mMap.clear();
             SubmissionArray.clear();
             Thread.sleep(200);
@@ -362,7 +354,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         }
 
         //Populate Submission Array with submissions
-        JSONArray Jarray = conn.getTable(mLastLocation);
+        JSONArray Jarray = conn.getTable(location);
         for (int i = 0; i < Jarray.length(); i++)
         {
             try
@@ -397,6 +389,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                         .snippet(submissionToAdd.getTimeSpan()));
             }
         }
+        getOwnerLots(location);
     }
     //When the button clicked
     @Override
@@ -413,7 +406,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 try
                 {
                     conn.sendLocation(latLocation, longLocation, "Y",id(this));
-                    populateMap();
+                    populateMap(mLastLocation);
                     //show Popup
                     Toast.makeText(ourSpot.this,"Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
                 } catch (Exception e)
@@ -431,7 +424,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 try
                 {
                     conn.sendLocation(latLocation, longLocation, "N",id(this));
-                    populateMap();
+                    populateMap(mLastLocation);
                     Toast.makeText(ourSpot.this,"Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
                 } catch (Exception e)
                 {
@@ -489,11 +482,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     }
 
     //pupulate maps with google results of parkings nearby
-    public void gerNearbyParkings()
+    public void gerNearbyParkings(Location location)
     {
         //what to search
         String prk = "parking";
-        String url = getUrl(mLastLocation.getLatitude(), mLastLocation.getLongitude(), prk);
+        String url = getUrl(location.getLatitude(), location.getLongitude(), prk);
         Object[] DataTransfer = new Object[2];
         DataTransfer[0] = mMap;
         DataTransfer[1] = url;
@@ -501,7 +494,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         GetParkingNearby getParking = new GetParkingNearby();
         getParking.execute(DataTransfer);
     }
-    public void getOwnerLots()
+    public void getOwnerLots(Location location)
     {
         //Populate Owner Array with submissions
         JSONArray Jarray = null;
