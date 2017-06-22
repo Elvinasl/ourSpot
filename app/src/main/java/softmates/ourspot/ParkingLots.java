@@ -2,9 +2,6 @@ package softmates.ourspot; /**
  * Created by Allan on 6/20/2017.
  */
 
-import android.util.Log;
-import android.util.StringBuilderPrinter;
-
 public class ParkingLots {
 
         private double Latitude;

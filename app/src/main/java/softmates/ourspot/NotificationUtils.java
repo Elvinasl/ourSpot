@@ -5,12 +5,9 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.renderscript.Allocation;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.util.DebugUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * Created by elvinaslukasevicius on 20/06/2017.
@@ -23,14 +20,14 @@ public class NotificationUtils {
     public static final String ACTION_3 = "action_3";
 
     public static void displayNotification(Context context, String latLocation, String longLocation) {
-
+        Log.d("Notification", "Fired");
         Intent action1Intent = new Intent(context, NotificationActionService.class)
                 .setAction(latLocation + ":" + longLocation + ":" + ACTION_1);
         Intent action2Intent = new Intent(context, NotificationActionService.class)
                 .setAction(latLocation + ":" + longLocation + ":" + ACTION_2);
         Intent action3Intent = new Intent(context, NotificationActionService.class)
                 .setAction(latLocation + ":" + longLocation + ":" + ACTION_3);
-
+        Log.d("lat",latLocation + ":" + longLocation + ":" + ACTION_3);
         PendingIntent action1PendingIntent = PendingIntent.getService(context, 0,
                 action1Intent, PendingIntent.FLAG_ONE_SHOT);
         PendingIntent action2PendingIntent = PendingIntent.getService(context, 0,
@@ -65,9 +62,15 @@ public class NotificationUtils {
         @Override
         protected void onHandleIntent(Intent intent) {
             String action = intent.getAction();
+            Log.d("action","fired");
             String[] splitLocation = action.split(":");
+            for (String split: splitLocation
+                    ) {
+                Log.d("split",split);
+
+            }
             if (ACTION_1.equals(splitLocation[2])) {
-                // TODO: handle action 1.
+                Log.d("ACtion1", "Fired");
                 try {
                     new connectionMng().sendLocation(splitLocation[0], splitLocation[1], "Y", ourSpot.id(getApplicationContext()));
                 } catch (Exception e) {
@@ -76,7 +79,7 @@ public class NotificationUtils {
                 NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID);
             }
             if (ACTION_2.equals(splitLocation[2])) {
-                // TODO: handle action 2.
+                Log.d("Action2", "Fired");
                 try {
                     new connectionMng().sendLocation(splitLocation[0], splitLocation[1], "N", ourSpot.id(getApplicationContext()));
                 } catch (Exception e) {
@@ -85,7 +88,7 @@ public class NotificationUtils {
                 NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID);
             }
             if (ACTION_3.equals(splitLocation[2])) {
-                // TODO: handle action 3.
+                Log.d("Action3", "Fired");
                 new connectionMng().sendBlacklist(splitLocation[0], splitLocation[1], ourSpot.id(getApplicationContext()));
                 NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID);
                 Log.d("action","3");

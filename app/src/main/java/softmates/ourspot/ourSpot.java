@@ -1,28 +1,19 @@
 package softmates.ourspot;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -54,8 +45,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 
 public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
@@ -72,7 +61,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
-    private Marker mCurrLocationMarker;
+    private Marker mCurrLocationMarker; //Don't delete
     private softmates.ourspot.connectionMng conn = new softmates.ourspot.connectionMng();
     private ArrayList<Submission> SubmissionArray = new ArrayList<Submission>();
     private ArrayList<ParkingLots> OwnerArray = new ArrayList<ParkingLots>();
@@ -80,15 +69,8 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     private int PROXIMITY_RADIUS = 10000;
     private static String sID;
     private static final String INSTALLATION = "INSTALLATION";
-    private Timer timerExecutor = new Timer();
-    private TimerTask doAsynchronousTaskExecutor;
-    private LocationManager mLocationManager;
-    private LocationProvider locationProvider;
-    private LocationListener locationListener;
     private LocationRequest mLocationRequest;
-    private static double[][] blackList;
-    private static Context context;
-    private static Context mContext;
+    private double[][] blackList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -97,9 +79,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         super.onCreate(savedInstanceState);
         //insert check for gps enabled
         Context activity = this;
-        context = getBaseContext();
-        //startService(new Intent(this, backgroundLocation.class));
-        ourSpot.mContext = getApplicationContext();
         setContentView(R.layout.activity_our_spot);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
@@ -120,16 +99,13 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         mClickButton3.setOnClickListener(this);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        //setBlacklist();
-        activity.startService(new Intent(activity,
-                backgroundLocation.class));
+        setBlacklist();
+        Intent mIntent = new Intent(this, backgroundLocation.class);
+        Bundle mBundle = new Bundle();
+        mBundle.putSerializable("blackList", blackList);
+        mIntent.putExtras(mBundle);
+        activity.startService(mIntent);
 
-    }
-    public static Context getAppContext() {
-        return ourSpot.mContext;
-    }
-    public static String getID(){
-        return ourSpot.sID;
     }
     public void setBlacklist(){
         JSONArray Jarray = null;
@@ -155,12 +131,9 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
                 }
             }
             blackList = blackListTemp;
+            Log.d("blacklistisnull", String.valueOf(blackList == null));
         }
 
-    }
-    public static synchronized double[][] getBlacklist(){
-        Log.d("blacklistssss",ourSpot.blackList.toString());
-        return ourSpot.blackList;
     }
     //This function is called when map is ready to be used. Here we can add all markers, listeners and other functional attributes.
     @Override
@@ -378,16 +351,11 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
             SubmissionArray.clear();
             Thread.sleep(200);
         } catch(InterruptedException ex) {
-            // intrreputed
+            ex.printStackTrace();
         }
 
         //Populate Submission Array with submissions
         JSONArray Jarray = conn.getTable(mLastLocation);
-        /*if(Jarray.length() > 0)
-        {
-
-            //TODO: Why for???????????????????????????
-        }*/
         for (int i = 0; i < Jarray.length(); i++)
         {
             try
@@ -529,7 +497,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
     public void getOwnerLots()
     {
         //Populate Owner Array with submissions
-
         JSONArray Jarray = null;
         try {
             Jarray = conn.getOwnerLots(mLastLocation);
@@ -581,9 +548,6 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         Log.d("getUrl", googlePlacesUrl.toString());
         return (googlePlacesUrl.toString());
     }
-
-
-
     //gets unique device id
     public synchronized static String id(Context context) {
         if (sID == null) {
@@ -613,80 +577,4 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         out.write(id.getBytes());
         out.close();
     }
-    public static double[][] getBlackList(){
-        if(blackList!=null) {
-
-            Log.d("blackListisNotnull",String.valueOf(blackList[0][0]));
-            return blackList;
-        }
-        else{
-            // TODO Change to 0 0 array;
-            Log.d("blackListisNotnull",String.valueOf(blackList[0][0]));
-            return null;
-        }
     }
-    /*public  void dialog(String a, String b) throws InterruptedException {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-        builder.setMessage("Are there any parking space around?");
-        //Button One : Yes
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-              //  Toast.makeText(ourSpot., "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
-                //dialog.cancel();
-            }
-        });
-        //Button Two : No
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Toast.makeText(ourSpot.this, "No button Clicked!", Toast.LENGTH_LONG).show();
-                dialog.cancel();
-            }
-        });
-        //Button Three : Neutral
-        builder.setNeutralButton("Don't ask again", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Toast.makeText(backgroundLocation.this, "Place is added to our blacklist", Toast.LENGTH_LONG).show();
-                dialog.cancel();
-            }
-        });
-        AlertDialog dialog = builder.create();
-        //AlertDialog.Builder dialog  = new AlertDialog.Builder(getActivity());
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        dialog.show();
-    }*/
-
-
-    public void Natific(){
-
-
-/*
-        // prepare intent which is triggered if the
-// notification is selected
-
-        Intent intent = new Intent(this, ourSpot.class);
-// use System.currentTimeMillis() to have a unique ID for the pending intent
-        PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
-
-// build notification
-// the addAction re-use the same intent to keep the example short
-        Notification n  = new Notification.Builder(this)
-                .setContentTitle("OurSpot")
-                .setContentText("Is there any parking space around?")
-                .setSmallIcon(R.drawable.p)
-                .setContentIntent(pIntent)
-                .setAutoCancel(true)
-                //.addAction(null,"a",pIntent)
-                //.addAction(P."Yes", pIntent)
-                .addAction(R.drawable.p, "No", pIntent)
-                .addAction(R.drawable.p, "Don't ask again", pIntent).build();
-
-
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
-        notificationManager.notify(0, n);*/
-    }
-}

@@ -1,25 +1,13 @@
 package softmates.ourspot;
 
-import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Toast;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.security.Timestamp;
 
 /**
  * Created by elvinaslukasevicius on 08/06/2017.
@@ -27,21 +15,17 @@ import java.security.Timestamp;
 
 public class backgroundLocation extends Service {
 
-
     private static final String TAG = "BOOMBOOMTESTGPS";
     private LocationManager mLocationManager = null;
     private static final int LOCATION_INTERVAL = 1000;
     private static final float LOCATION_DISTANCE = 10f;
-    private double[][] blackList;
     final boolean[] overThirty = {false};
     final boolean[] underNine = {false};
     final boolean[] parked = {false};
+    private double[][] blackList;
     final long[] createdMillis = {System.currentTimeMillis()};
-
     private class LocationListener implements android.location.LocationListener {
         Location mLastLocation;
-
-
         public LocationListener(String provider) {
             Log.e(TAG, "LocationListener " + provider);
             mLastLocation = new Location(provider);
@@ -61,7 +45,6 @@ public class backgroundLocation extends Service {
             if (speed > 30 && !overThirty[0]) {
                 overThirty[0] = true;
                 Log.d("overthirty", "Y");
-                //over 30km/h
             }
             if (speed < 4 && overThirty[0]) {
                 parked[0] = true;
@@ -82,15 +65,12 @@ public class backgroundLocation extends Service {
                 overThirty[0] = false;
                 underNine[0] = false;
                 Log.d("Detected", "Y");
-                //if (notInBlackList(ourSpot.getBlacklist(), location)) {
-                NotificationUtils.displayNotification(getApplicationContext(), latLocation, longLocation);
-                //}
-
-
-
+                if (notInBlackList(location)) {
+                    NotificationUtils.displayNotification(getApplicationContext(), latLocation, longLocation);
+                }
             }
-        }
 
+        }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -108,30 +88,30 @@ public class backgroundLocation extends Service {
         }
     }
 
-    public boolean notInBlackList(double[][] blackList, Location location) {
+    public boolean notInBlackList(Location location) {
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         Log.d("BlackGPS",String.valueOf(latitude) + String.valueOf(longitude));
         double lat1;
         double lon1;
         Log.d("EnteredInBlack", "Y");
-        boolean blackListed = true;
+        Log.d("nullblacklsit",String.valueOf(blackList==null));
+        boolean notBlackListed = true;
         if(blackList !=null) {
             Log.d("EnteredInBlack1", "Y");
-
             if (blackList.length != 0) {
                 Log.d("EnteredInBlack2", "Y");
                 for (int i = 0; i < blackList.length; i++) {
                     Log.d("EnteredInBlack3", "Y");
                     lat1 = blackList[i][0];
                     lon1 = blackList[i][1];
-                    blackListed = ourSpot.distance(lat1, latitude, lon1, longitude) < 50;
-                    Log.d("BlackDistance", String.valueOf(ourSpot.distance(lat1, latitude, lon1, longitude) < 50));
+                    Log.d(String.valueOf(lat1),String.valueOf(lon1));
+                    notBlackListed = ourSpot.distance(lat1, latitude, lon1, longitude) > 50;
                 }
             }
         }
 
-        return blackListed;
+        return notBlackListed;
     }
 
 
@@ -148,6 +128,8 @@ public class backgroundLocation extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
+        blackList = (double[][])intent.getExtras().getSerializable("blackList");
+        Log.d("onStart", intent.toString());
         super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
@@ -179,17 +161,7 @@ public class backgroundLocation extends Service {
 
     @Override
     public void onDestroy() {
-       /* Log.e(TAG, "onDestroy");
-        super.onDestroy();
-        if (mLocationManager != null) {
-            for (int i = 0; i < mLocationListeners.length; i++) {
-                try {
-                    mLocationManager.removeUpdates(mLocationListeners[i]);
-                } catch (Exception ex) {
-                    Log.i(TAG, "fail to remove location listners, ignore", ex);
-                }
-            }
-        }*/
+
     }
 
     private void initializeLocationManager() {
@@ -199,77 +171,6 @@ public class backgroundLocation extends Service {
         }
     }
 
- /*   public void dialog(final String latLocation, final String longLocation) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(backgroundLocation.this);
-        builder.setMessage("Are there any parking space around?");
-        //Button One : Yes
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                try {
-                    new connectionMng().sendLocation(latLocation, longLocation, "Y", ourSpot.id(getApplicationContext()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(getApplicationContext(), "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
-            }
-        });
-        //Button Two : No
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                try {
-                    new connectionMng().sendLocation(latLocation, longLocation, "N", ourSpot.id(getApplicationContext()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(getApplicationContext(), "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
-                dialog.cancel();
-            }
-        });
-        //Button Three : Neutral
-        builder.setNeutralButton("Don't ask again", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //TODO Add to blacklist
-                Toast.makeText(getApplicationContext(), "Place is added to our blacklist", Toast.LENGTH_LONG).show();
-                dialog.cancel();
-            }
-        });
-        AlertDialog diag = builder.create();
-        diag.show();
-    }*/
 
-    public void dialog(String a, String b) throws InterruptedException {
-        /*AlertDialog.Builder builder = new AlertDialog.Builder(backgroundLocation.this);
-        builder.setMessage("Are there any parking space around?");
-        //Button One : Yes
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(backgroundLocation.this, "Thank You, Your submission has been added.", Toast.LENGTH_LONG).show();
-            }
-        });
-        //Button Two : No
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(backgroundLocation.this, "No button Clicked!", Toast.LENGTH_LONG).show();
-                //dialog.cancel();
-            }
-        });
-        //Button Three : Neutral
-        builder.setNeutralButton("Don't ask again", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(backgroundLocation.this, "Place is added to our blacklist", Toast.LENGTH_LONG).show();
-                //dialog.cancel();
-            }
-        });
-        AlertDialog dialog = builder.create();
-        //AlertDialog.Builder dialog  = new AlertDialog.Builder(getActivity());
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        dialog.show();*/
-    }
 }
 

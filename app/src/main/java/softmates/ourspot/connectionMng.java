@@ -43,8 +43,6 @@ public class connectionMng
 
             @Override public void onResponse(Call call, Response response) throws IOException
             {
-                // Logging purposes to be deleted on production.
-                Log.d("Submission sent", response.body().string());
             }
         });
     }

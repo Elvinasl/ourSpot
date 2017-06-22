@@ -1,8 +1,5 @@
 package softmates.ourspot;
 
-import android.util.Log;
-import android.util.StringBuilderPrinter;
-
 public class Submission
 {
     private double Latitude;
