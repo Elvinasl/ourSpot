@@ -128,10 +128,11 @@ public class backgroundLocation extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
-        blackList = (double[][])intent.getExtras().getSerializable("blackList");
-        Log.d("onStart", intent.toString());
+        if(intent != null){
+            blackList = (double[][])intent.getExtras().getSerializable("blackList");
+        }
         super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
