@@ -1,6 +1,7 @@
 package softmates.ourspot;
 
 import android.Manifest;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -36,12 +37,12 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.instabug.library.Instabug;
+import com.instabug.library.invocation.InstabugInvocationEvent;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import android.app.Application;
-import com.instabug.library.Instabug;
-import com.instabug.library.invocation.InstabugInvocationEvent;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -110,6 +111,7 @@ public class ourSpot extends FragmentActivity implements OnMapReadyCallback,
         new Instabug.Builder((Application) getApplicationContext(), "bdba67c174a625c6b2a8bb4f3137a99b")
                 .setInvocationEvent(InstabugInvocationEvent.FLOATING_BUTTON)
                 .build();
+
 
     }
     public void setBlacklist(){
